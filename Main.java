@@ -1,7 +1,10 @@
+import org.openqa.selenium.By;
+import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import javax.crypto.Cipher;
@@ -42,16 +45,29 @@ public class Main {
         //set capability to browser
         c.setCapability(ChromeOptions.CAPABILITY, o);
         WebDriver driver = new ChromeDriver(o);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
 
         // Launch Website
         driver.get("https://epgweb.sero.wh.rnd.internal.ericsson.com/testjobs");
-
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        loginToEPGTestPortal(driver, wait, account, pass);
 
 
         driver.close();
         long endTime = System.currentTimeMillis();
         System.out.println("Runtime: " + (endTime - startTime) / 1000 + " seconds");
+    }
+
+    static void loginToEPGTestPortal(WebDriver driver, WebDriverWait wait, String account, String pass) {
+        // adding the email address
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("edit-name")));
+        driver.findElement(By.id("edit-name")).sendKeys(account);
+        // adding the password
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("edit-pass")));
+        driver.findElement(By.id("edit-pass")).sendKeys(pass);
+        // click to the login button
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("edit-submit")));
+        driver.findElement(By.id("edit-submit")).click();
     }
 
     static void readUserConfig() throws IOException {
@@ -68,7 +84,7 @@ public class Main {
             output.close();
         }
 
-        Main.account = prop.getProperty("email");
+        Main.account = prop.getProperty("account");
         Main.pass = decrypt(prop.getProperty("pass").split("encrypted")[1], secretKeyy);
     }
 
