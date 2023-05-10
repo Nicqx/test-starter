@@ -20,6 +20,9 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
+import java.util.regex.Pattern;
+
+import static java.lang.Thread.sleep;
 
 
 public class Main {
@@ -59,7 +62,7 @@ public class Main {
         selectAutoTT(driver, wait);
 
 
-        driver.close();
+//        driver.close();
         long endTime = System.currentTimeMillis();
         System.out.println("Runtime: " + (endTime - startTime) / 1000 + " seconds");
     }
@@ -89,6 +92,31 @@ public class Main {
         wait.until(ExpectedConditions.presenceOfElementLocated(By.id("propose_epgcats_link")));
         // propose epgcats
         driver.findElement(By.id("propose_epgcats_link")).click();
+        // wait for the epgcats to proposing for 15 sec
+        try {
+            sleep(15000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        // add test case
+        driver.findElement(By.id("search_testcase")).sendKeys(tcstorun);
+        driver.findElement(By.xpath("//html")).click();
+        try {
+            sleep(10000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+//        wait.until(ExpectedConditions.presenceOfElementLocated(By.className("panel-title fieldset-legend")))
+        // add node
+        driver.findElement(By.id("edit-test-autott-node-constraints-node-type-cots-16-host-sriovflat-25intel")).click();
+
+        // add to queue
+        driver.findElement(By.id("submit")).click();
+        try {
+            sleep(15000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         System.out.println();
     }
 
