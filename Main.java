@@ -5,6 +5,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import javax.crypto.Cipher;
@@ -19,7 +20,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 
 public class Main {
@@ -30,10 +30,13 @@ public class Main {
     static final String secretKeyy = "#H@Ew<QPmD%jknUne>YrhQHz^ja*6PBwJ79D@=^67kxcxTA.TiF,q5XRb6LZ~Ha4w";
     static String account = "";
     static String pass = "";
+    static String tcstorun = "";
+    static String buildid = "";
 
     public static void main(String[] args) throws IOException {
         long startTime = System.currentTimeMillis();
         readUserConfig();
+        readRunConfig();
 
         System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
         // configure options parameter to Chrome driver
@@ -42,20 +45,51 @@ public class Main {
         o.addArguments("--incognito");
         // DesiredCapabilities object
         DesiredCapabilities c = new DesiredCapabilities();
-        //set capability to browser
+        // set capability to browser
         c.setCapability(ChromeOptions.CAPABILITY, o);
         WebDriver driver = new ChromeDriver(o);
+        // set the maximum time before timeout
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
 
         // Launch Website
         driver.get("https://epgweb.sero.wh.rnd.internal.ericsson.com/testjobs");
-        loginToEPGTestPortal(driver, wait, account, pass);
+        loginToEPGTestPortal(driver, wait, account, decrypt(pass.split("encrypted")[1], secretKeyy));
+
+        selectAutoTT(driver, wait);
 
 
         driver.close();
         long endTime = System.currentTimeMillis();
         System.out.println("Runtime: " + (endTime - startTime) / 1000 + " seconds");
+    }
+
+    static void readRunConfig() throws IOException {
+        FileReader input = new FileReader("run.properties");
+        Properties prop = new Properties();
+
+        prop.load(input);
+        input.close();
+
+        Main.tcstorun = prop.getProperty("TCsToRun");
+        Main.buildid = prop.getProperty("BuildID");
+    }
+
+    static void selectAutoTT(WebDriver driver, WebDriverWait wait) {
+        // wait for loading the dropdown menu
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("edit-selected-test-type")));
+        // select AutoTT
+        Select drpType = new Select(driver.findElement(By.id("edit-selected-test-type")));
+        drpType.selectByValue("autott");
+        // wait for autott is loading
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("edit-test")));
+        // fill node id
+        driver.findElement(By.id("node_build_id")).sendKeys(buildid);
+        driver.findElement(By.xpath("//html")).click();
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.id("propose_epgcats_link")));
+        // propose epgcats
+        driver.findElement(By.id("propose_epgcats_link")).click();
+        System.out.println();
     }
 
     static void loginToEPGTestPortal(WebDriver driver, WebDriverWait wait, String account, String pass) {
@@ -85,7 +119,7 @@ public class Main {
         }
 
         Main.account = prop.getProperty("account");
-        Main.pass = decrypt(prop.getProperty("pass").split("encrypted")[1], secretKeyy);
+        Main.pass = prop.getProperty("pass"); //decrypt(prop.getProperty("pass").split("encrypted")[1], secretKeyy);
     }
 
     public static void prepareSecreteKey(String myKey) {

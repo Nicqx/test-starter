@@ -8,6 +8,7 @@ out/
 !**/src/test/**/out/
 user.properties
 config.properties
+run.properties
 
 ### Eclipse ###
 .apt_generated
