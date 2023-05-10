@@ -1,3 +1,9 @@
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.FileReader;
@@ -6,9 +12,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
+
 
 public class Main {
 
@@ -19,10 +28,28 @@ public class Main {
     static String account = "";
     static String pass = "";
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public static void main(String[] args) throws IOException {
         long startTime = System.currentTimeMillis();
         readUserConfig();
 
+        System.setProperty("webdriver.chrome.driver", "chromedriver.exe");
+        // configure options parameter to Chrome driver
+        ChromeOptions o = new ChromeOptions();
+        // add Incognito parameter
+        o.addArguments("--incognito");
+        // DesiredCapabilities object
+        DesiredCapabilities c = new DesiredCapabilities();
+        //set capability to browser
+        c.setCapability(ChromeOptions.CAPABILITY, o);
+        WebDriver driver = new ChromeDriver(o);
+
+        // Launch Website
+        driver.get("https://epgweb.sero.wh.rnd.internal.ericsson.com/testjobs");
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
+
+        driver.close();
         long endTime = System.currentTimeMillis();
         System.out.println("Runtime: " + (endTime - startTime) / 1000 + " seconds");
     }
